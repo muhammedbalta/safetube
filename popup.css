@@ -1,6 +1,63 @@
-#colorToggler {
-  height: 20px;
+.toggle-container {
+  display: flex;
+  align-items: center;
+  margin: 10px 0;
+  width: 200px;
+}
+
+.toggle {
+  visibility: hidden;
+}
+
+.label {
+  position: relative;
+  background-color: #d0d0d0;
+  cursor: pointer;
+  border-radius: 12.5px;
+  margin: 0 7.5px 0;
   width: 40px;
-  border-radius: 8px;
-  border: 0px;
+  height: 20px;
+}
+
+.toggle:checked + .label {
+  background-color: #228b22;
+}
+
+.ball {
+  background-color: white;
+  height: 17px;
+  width: 17px;
+  border-radius: 50%;
+  position: absolute;
+  top: 1.5px;
+  left: 1.5px;
+  animation: slideOff 0.3s linear forwards;
+}
+
+.toggle:checked + .label .ball {
+  animation: slideOn 0.3s linear forwards;
+}
+
+@keyframes slideOn {
+  0% {
+    transform: translateX(0) scale(1);
+  }
+  50% {
+    transform: translateX(10px) scale(1.2);
+  }
+  100% {
+    transform: translateX(20px) scale(1);
+  }
+}
+
+@keyframes slideOff {
+  0% {
+    transform: translateX(20px) scale(1);
+  }
+  50% {
+    transform: translateX(10px) scale(1.2);
+  }
+  100% {
+    transform: translateX(0) scale(1);
+  }
 }

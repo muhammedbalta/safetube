@@ -1,9 +1,9 @@
 {
-  "name": "ForYoutube",
-  "description": "Personalized youtube experience",
+  "name": "SafeYoutube",
+  "description": "Content blocking for youtube",
   "version": "0.1",
   "manifest_version": 3,
-  "permissions": ["activeTab", "scripting"],
+  "permissions": ["activeTab", "scripting", "storage"],
   "background": {
     "service_worker": "background.js"
   },
