@@ -1,21 +1,16 @@
-const items = document.querySelectorAll("yt-formatted-string[title]");
-console.log(items);
-const items2 = document.querySelectorAll("yt-formatted-string[title]");
-console.log(items);
-
-/*items.forEach((element) => {
-  console.log(element);
-  element.style.color = "red";
-});*/
-
-function displayHello() {
+function block() {
   let items = document.querySelectorAll(
-    "a.yt-simple-endpoint.yt-formatted-string"
+    "#items.yt-horizontal-list-renderer>*.yt-horizontal-list-renderer"
   );
   items.forEach((element) => {
-    console.log(element);
-    element.style.color = "red";
+    let channelName = element.querySelector(
+      "yt-formatted-string[has-link-only_]:not([force-default-style]) a.yt-simple-endpoint.yt-formatted-string"
+    );
+
+    if (channelName != null && channelName?.textContent == "Murat Soner") {
+      element.style.display = "none";
+    }
   });
 }
 
-setInterval(displayHello, 1000);
+setInterval(block, 1000);
