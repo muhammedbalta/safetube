@@ -1,0 +1,48 @@
+.listBlockButton {
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  width: 27px;
+  height: 27px;
+  cursor: pointer;
+  z-index: 999999999999999;
+  position: absolute;
+  right: 8px;
+  top: 68px;
+  border: 0px;
+  display: none;
+}
+
+.listBlockButton.show {
+  display: inline;
+}
+
+.listBlockLabel {
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  cursor: pointer;
+  right: 35px;
+  text-transform: uppercase;
+  top: 68px;
+  z-index: 999999999999999;
+  padding: 8px;
+  display: none;
+  height: 11px;
+}
+
+.listBlockLabel.show {
+  display: inline;
+  animation: showOn 0.3s linear forwards;
+}
+
+@keyframes showOn {
+  0% {
+    width: 0px;
+  }
+  50% {
+    width: 25px;
+  }
+  100% {
+    width: 50px;
+  }
+}
