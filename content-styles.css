@@ -1,4 +1,4 @@
-.listBlockButton {
+.blockButton {
   background-color: rgba(0, 0, 0, 0.8);
   color: white;
   width: 27px;
@@ -6,13 +6,21 @@
   cursor: pointer;
   z-index: 999999999999999;
   position: absolute;
-  right: 8px;
-  top: 68px;
   border: 0px;
   display: none;
 }
 
-.listBlockButton.show {
+.blockButton.list {
+  right: 8px;
+  top: 68px;
+}
+
+.blockButton.grid {
+  right: 8px;
+  top: 8px;
+}
+
+.blockButton.show {
   display: inline;
 }
 

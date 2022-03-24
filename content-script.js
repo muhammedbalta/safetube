@@ -1,4 +1,4 @@
-function listBlockRender() {
+function horizontalListScanner() {
   let videoImgs = document.querySelectorAll(
     "ytd-thumbnail #thumbnail.ytd-thumbnail yt-img-shadow.ytd-thumbnail"
   );
@@ -10,7 +10,8 @@ function listBlockRender() {
     if (parent && parent != null) {
       const listClosebutton = document.createElement("button");
       listClosebutton.innerText = "X";
-      listClosebutton.classList.add("listBlockButton");
+      listClosebutton.classList.add("blockButton");
+      listClosebutton.classList.add("list");
       const listBlockLabel = document.createElement("div");
       listBlockLabel.innerText = "Engelle";
       listBlockLabel.classList.add("listBlockLabel");
@@ -33,6 +34,27 @@ function listBlockRender() {
         parent.style.display = "none";
       });
     }
+  });
+}
+
+function mainGridScanner() {
+  let gridVideos = document.querySelectorAll("ytd-rich-item-renderer");
+  console.log(gridVideos.length);
+  gridVideos.forEach((grid) => {
+    const gridBlockButton = document.createElement("button");
+    gridBlockButton.innerText = "X";
+    gridBlockButton.classList.add("blockButton");
+    gridBlockButton.classList.add("grid");
+    grid.appendChild(gridBlockButton);
+    grid.addEventListener("mouseover", () => {
+      gridBlockButton.classList.add("show");
+    });
+    grid.addEventListener("mouseleave", () => {
+      gridBlockButton.classList.remove("show");
+    });
+    gridBlockButton.addEventListener("click", () => {
+      grid.style.display = "none";
+    });
   });
 }
 
@@ -65,34 +87,9 @@ function blockHeaderVideo() {
     listClosebutton.addEventListener("click", () => {
       headerContent.style.display = "none";
     });
-    //headerContent.style.display = "none";
   }
 }
 
-function menuButtons() {
-  const menuButtonList = document.querySelectorAll("ytd-menu-renderer");
-  console.log(menuButtonList);
-  menuButtonList.forEach((menuButton) => {
-    menuButton.addEventListener("click", () => {
-      alert("Hi");
-    });
-  });
-  /*if (menuButton && menuButton != null) {
-    menuButton.addEventListener("click", () => {
-      alert("hi");
-    });
-  }*/
-}
-
-function popupBlocker() {
-  const popupContainers = document.querySelectorAll("tp-yt-paper-listbox");
-  console.log(popupContainers.length);
-  /* popupContainers.forEach((container) => {
-    const item = document.createElement("ytd-menu-service-item-renderer");
-    item.classList.add("style-scope");
-    item.classList.add("ytd-menu-popup-renderer");
-    container.appendChild(item);
-  });*/
-}
-setInterval(listBlockRender, 5000);
+terval(horizontalListScanner, 5000);
+setInterval(mainGridScanner, 2000);
 setInterval(popupBlocker, 5000);
