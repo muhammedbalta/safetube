@@ -1,4 +1,47 @@
-function horizontalListScanner() {
+let videoItems = [];
+function main() {
+  const loc = window.location.href.substring(
+    window.location.href.lastIndexOf("/") + 1
+  );
+  switch (loc) {
+    case "featured":
+      featuredPageRender();
+      document.onscroll = featuredPageRender();
+      break;
+    case "videos":
+      console.log("videos");
+      break;
+    case "playlists":
+      console.log("playlists");
+      break;
+    case "community":
+      console.log("community");
+      break;
+    case "channel":
+      console.log("channels");
+      break;
+    case "about":
+      console.log("about");
+      break;
+  }
+}
+
+function blockVideo(video) {
+  let videos = [];
+  chrome.storage.sync.get("blockedVideos", (data) => {
+    if (data.blockedVideos) {
+      videos = data.blockedVideos;
+      videos.push(video);
+      chrome.storage.sync.set({ blockedVideos: videos });
+      console.log(videos);
+    } else {
+      videos.push(video);
+      chrome.storage.sync.set({ blockedVideos: videos });
+      console.log(videos);
+    }
+  });
+}
+function featuredPageRender() {
   let videoImgs = document.querySelectorAll(
     "ytd-thumbnail #thumbnail.ytd-thumbnail yt-img-shadow.ytd-thumbnail"
   );
@@ -8,30 +51,53 @@ function horizontalListScanner() {
       "#items.yt-horizontal-list-renderer>*.yt-horizontal-list-renderer"
     );
     if (parent && parent != null) {
-      const listClosebutton = document.createElement("button");
-      listClosebutton.innerText = "X";
-      listClosebutton.classList.add("blockButton");
-      listClosebutton.classList.add("list");
-      const listBlockLabel = document.createElement("div");
-      listBlockLabel.innerText = "Engelle";
-      listBlockLabel.classList.add("listBlockLabel");
+      let a = element.closest("ytd-thumbnail #thumbnail.ytd-thumbnail");
+      let text = parent.querySelector(
+        "ytd-grid-video-renderer #video-title.yt-simple-endpoint.ytd-grid-video-renderer"
+      ).innerText;
+      const videoItem = {
+        href: a.href,
+        title: text,
+      };
+      hideBlocked(videoItem, parent);
+      if (!parent.querySelector(".blockButton")) {
+        const listClosebutton = document.createElement("button");
+        listClosebutton.innerText = "X";
+        listClosebutton.classList.add("blockButton");
+        listClosebutton.classList.add("list");
+        const listBlockLabel = document.createElement("div");
+        listBlockLabel.innerText = "Engelle";
+        listBlockLabel.classList.add("listBlockLabel");
 
-      parent.appendChild(listClosebutton);
-      parent.appendChild(listBlockLabel);
-      parent.addEventListener("mouseover", () => {
-        listClosebutton.classList.add("show");
-      });
-      parent.addEventListener("mouseleave", () => {
-        listClosebutton.classList.remove("show");
-      });
-      listClosebutton.addEventListener("mouseover", () => {
-        listBlockLabel.classList.add("show");
-      });
-      listClosebutton.addEventListener("mouseleave", () => {
-        listBlockLabel.classList.remove("show");
-      });
-      listClosebutton.addEventListener("click", () => {
-        parent.style.display = "none";
+        parent.appendChild(listClosebutton);
+        parent.appendChild(listBlockLabel);
+        parent.addEventListener("mouseover", () => {
+          listClosebutton.classList.add("show");
+        });
+        parent.addEventListener("mouseleave", () => {
+          listClosebutton.classList.remove("show");
+        });
+        listClosebutton.addEventListener("mouseover", () => {
+          listBlockLabel.classList.add("show");
+        });
+        listClosebutton.addEventListener("mouseleave", () => {
+          listBlockLabel.classList.remove("show");
+        });
+        listClosebutton.addEventListener("click", () => {
+          parent.style.display = "none";
+
+          blockVideo(videoItem);
+        });
+      }
+    }
+  });
+}
+
+function hideBlocked(video, parent) {
+  chrome.storage.sync.get("blockedVideos", (data) => {
+    if (data.blockedVideos) {
+      data.blockedVideos.forEach((item, index) => {
+        if (video.href == item.href) parent.style.display = "none";
       });
     }
   });
@@ -39,7 +105,6 @@ function horizontalListScanner() {
 
 function mainGridScanner() {
   let gridVideos = document.querySelectorAll("ytd-rich-item-renderer");
-  console.log(gridVideos.length);
   gridVideos.forEach((grid) => {
     const gridBlockButton = document.createElement("button");
     gridBlockButton.innerText = "X";
@@ -90,6 +155,4 @@ function blockHeaderVideo() {
   }
 }
 
-terval(horizontalListScanner, 5000);
-setInterval(mainGridScanner, 2000);
-setInterval(popupBlocker, 5000);
+setInterval(main, 2000);
