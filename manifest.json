@@ -3,6 +3,7 @@
   "description": "Content blocking for youtube",
   "version": "0.1",
   "manifest_version": 3,
+  "options_page": "options.html",
   "permissions": ["activeTab", "scripting", "storage"],
   "background": {
     "service_worker": "background.js"
