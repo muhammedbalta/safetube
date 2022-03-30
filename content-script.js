@@ -3,6 +3,7 @@ function main() {
   const loc = window.location.href.substring(
     window.location.href.lastIndexOf("/") + 1
   );
+  console.log(loc);
   switch (loc) {
     case "featured":
       featuredPageRender();
@@ -23,6 +24,10 @@ function main() {
     case "about":
       console.log("about");
       break;
+    case "":
+      dashboard();
+      document.onscroll = dashboard();
+      break;
   }
 }
 
@@ -33,61 +38,53 @@ function blockVideo(video) {
       videos = data.blockedVideos;
       videos.push(video);
       chrome.storage.sync.set({ blockedVideos: videos });
-      console.log(videos);
     } else {
       videos.push(video);
       chrome.storage.sync.set({ blockedVideos: videos });
-      console.log(videos);
     }
   });
 }
 function featuredPageRender() {
-  let videoImgs = document.querySelectorAll(
-    "ytd-thumbnail #thumbnail.ytd-thumbnail yt-img-shadow.ytd-thumbnail"
+  headerVideo();
+  horizontalList();
+}
+function headerVideo() {
+  const headerVideoElement = document.querySelector(
+    "ytd-video-renderer:not([use-prominent-thumbs])"
+  );
+  const title = headerVideoElement.querySelector(
+    "#video-title.ytd-video-renderer"
+  ).title;
+  const href = headerVideoElement.querySelector(
+    "#video-title.ytd-video-renderer"
+  ).href;
+  const videoItem = {
+    href,
+    title,
+  };
+  hideBlocked(videoItem, headerVideoElement);
+  if (!headerVideoElement.querySelector(".blockButton")) {
+    addBlockButton(videoItem, headerVideoElement, "list");
+  }
+}
+
+function horizontalList() {
+  let horizontalListItems = document.querySelectorAll(
+    "#items.yt-horizontal-list-renderer>*.yt-horizontal-list-renderer"
   );
 
-  videoImgs.forEach((element) => {
-    const parent = element.closest(
-      "#items.yt-horizontal-list-renderer>*.yt-horizontal-list-renderer"
+  horizontalListItems.forEach((item) => {
+    const link = item.querySelector(
+      "ytd-grid-video-renderer #video-title.yt-simple-endpoint.ytd-grid-video-renderer"
     );
-    if (parent && parent != null) {
-      let a = element.closest("ytd-thumbnail #thumbnail.ytd-thumbnail");
-      let text = parent.querySelector(
-        "ytd-grid-video-renderer #video-title.yt-simple-endpoint.ytd-grid-video-renderer"
-      ).innerText;
+    if (link) {
       const videoItem = {
-        href: a.href,
-        title: text,
+        href: link.href,
+        title: link.innerText,
       };
-      hideBlocked(videoItem, parent);
-      if (!parent.querySelector(".blockButton")) {
-        const listClosebutton = document.createElement("button");
-        listClosebutton.innerText = "X";
-        listClosebutton.classList.add("blockButton");
-        listClosebutton.classList.add("list");
-        const listBlockLabel = document.createElement("div");
-        listBlockLabel.innerText = "Engelle";
-        listBlockLabel.classList.add("listBlockLabel");
-
-        parent.appendChild(listClosebutton);
-        parent.appendChild(listBlockLabel);
-        parent.addEventListener("mouseover", () => {
-          listClosebutton.classList.add("show");
-        });
-        parent.addEventListener("mouseleave", () => {
-          listClosebutton.classList.remove("show");
-        });
-        listClosebutton.addEventListener("mouseover", () => {
-          listBlockLabel.classList.add("show");
-        });
-        listClosebutton.addEventListener("mouseleave", () => {
-          listBlockLabel.classList.remove("show");
-        });
-        listClosebutton.addEventListener("click", () => {
-          parent.style.display = "none";
-
-          blockVideo(videoItem);
-        });
+      hideBlocked(videoItem, item);
+      if (!item.querySelector(".blockButton")) {
+        addBlockButton(videoItem, item, "list");
       }
     }
   });
@@ -103,23 +100,23 @@ function hideBlocked(video, parent) {
   });
 }
 
-function mainGridScanner() {
+function dashboard() {
   let gridVideos = document.querySelectorAll("ytd-rich-item-renderer");
   gridVideos.forEach((grid) => {
-    const gridBlockButton = document.createElement("button");
-    gridBlockButton.innerText = "X";
-    gridBlockButton.classList.add("blockButton");
-    gridBlockButton.classList.add("grid");
-    grid.appendChild(gridBlockButton);
-    grid.addEventListener("mouseover", () => {
-      gridBlockButton.classList.add("show");
-    });
-    grid.addEventListener("mouseleave", () => {
-      gridBlockButton.classList.remove("show");
-    });
-    gridBlockButton.addEventListener("click", () => {
-      grid.style.display = "none";
-    });
+    const href = grid.querySelector(
+      "#video-title-link.ytd-rich-grid-media"
+    ).href;
+    const title = grid.querySelector(
+      "#video-title.ytd-rich-grid-media"
+    ).innerText;
+    const videoItem = {
+      href,
+      title,
+    };
+    hideBlocked(videoItem, grid);
+    if (!grid.querySelector(".blockButton")) {
+      addBlockButton(videoItem, grid, "grid");
+    }
   });
 }
 
@@ -155,4 +152,34 @@ function blockHeaderVideo() {
   }
 }
 
-setInterval(main, 2000);
+function addBlockButton(videoItem, parent, className) {
+  const blockButton = document.createElement("button");
+  blockButton.innerText = "X";
+  blockButton.classList.add("blockButton");
+  blockButton.classList.add(className);
+  const blockLabel = document.createElement("div");
+  blockLabel.innerText = "Engelle";
+  blockLabel.classList.add("blockLabel");
+
+  parent.appendChild(blockButton);
+  parent.appendChild(blockLabel);
+  parent.addEventListener("mouseover", () => {
+    blockButton.classList.add("show");
+  });
+  parent.addEventListener("mouseleave", () => {
+    blockButton.classList.remove("show");
+  });
+  blockButton.addEventListener("mouseover", () => {
+    blockLabel.classList.add("show");
+  });
+  blockButton.addEventListener("mouseleave", () => {
+    blockLabel.classList.remove("show");
+  });
+  blockButton.addEventListener("click", () => {
+    parent.style.display = "none";
+
+    blockVideo(videoItem);
+  });
+}
+
+setInterval(main, 100);
