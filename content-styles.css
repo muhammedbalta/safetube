@@ -15,6 +15,11 @@
   top: 68px;
 }
 
+.blockButton.vertical-list {
+  top: 68px;
+  left: 329px;
+}
+
 .blockButton.grid {
   right: 8px;
   top: 8px;

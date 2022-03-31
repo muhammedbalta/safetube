@@ -1,8 +1,9 @@
 let videoItems = [];
 function main() {
-  const loc = window.location.href.substring(
+  let loc = window.location.href.substring(
     window.location.href.lastIndexOf("/") + 1
   );
+  if (loc.startsWith("results?")) loc = "results";
   console.log(loc);
   switch (loc) {
     case "featured":
@@ -21,8 +22,9 @@ function main() {
     case "channel":
       console.log("channels");
       break;
-    case "about":
-      console.log("about");
+    case "results":
+      verticalList();
+      document.onscroll = verticalList();
       break;
     case "":
       dashboard();
@@ -103,19 +105,17 @@ function hideBlocked(video, parent) {
 function dashboard() {
   let gridVideos = document.querySelectorAll("ytd-rich-item-renderer");
   gridVideos.forEach((grid) => {
-    const href = grid.querySelector(
-      "#video-title-link.ytd-rich-grid-media"
-    ).href;
-    const title = grid.querySelector(
-      "#video-title.ytd-rich-grid-media"
-    ).innerText;
-    const videoItem = {
-      href,
-      title,
-    };
-    hideBlocked(videoItem, grid);
-    if (!grid.querySelector(".blockButton")) {
-      addBlockButton(videoItem, grid, "grid");
+    const link = grid.querySelector("#video-title-link.ytd-rich-grid-media");
+    const label = grid.querySelector("#video-title.ytd-rich-grid-media");
+    if (link && label) {
+      const videoItem = {
+        href: link.href,
+        title: label.innerText,
+      };
+      hideBlocked(videoItem, grid);
+      if (!grid.querySelector(".blockButton")) {
+        addBlockButton(videoItem, grid, "grid");
+      }
     }
   });
 }
@@ -179,6 +179,25 @@ function addBlockButton(videoItem, parent, className) {
     parent.style.display = "none";
 
     blockVideo(videoItem);
+  });
+}
+
+function verticalList() {
+  const listVideoItems = document.querySelectorAll(
+    "ytd-video-renderer.ytd-item-section-renderer"
+  );
+  listVideoItems.forEach((item) => {
+    const link = item.querySelector("#video-title.ytd-video-renderer");
+    if (link) {
+      const videoItem = {
+        href: link.href,
+        title: link.innerText,
+      };
+      hideBlocked(videoItem, item);
+      if (!item.querySelector(".blockButton")) {
+        addBlockButton(videoItem, item, "vertical-list");
+      }
+    }
   });
 }
 
