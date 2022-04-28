@@ -1,18 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"
+      integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
     <link rel="stylesheet" href="options.css" />
   </head>
   <body>
-    <div id="videoList" class="listContainer">
+    <div id="videoList" class="list-container">
       <div class="head">
         <div class="title">Blocked Videos</div>
+        <div class="search-container">
+          <input type="text" />
+          <button><i class="fa-solid fa-magnifying-glass"></i></button>
+        </div>
       </div>
       <div class="body"></div>
     </div>
-    <div id="channelList" class="listContainer">
+    <div id="channelList" class="list-container">
       <div class="head">
-        <div class="title">Blocked</div>
+        <div class="title">Blocked Channels</div>
+        <div class="search-container">
+          <input type="text" />
+          <button><i class="fa-solid fa-magnifying-glass"></i></button>
+        </div>
       </div>
       <div class="body"></div>
     </div>

@@ -15,6 +15,11 @@
   top: 68px;
 }
 
+.blockButton.header {
+  left: 215px;
+  top: 68px;
+}
+
 .blockButton.vertical-list {
   top: 68px;
   left: 329px;
@@ -23,6 +28,11 @@
 .blockButton.grid {
   right: 8px;
   top: 8px;
+}
+
+.blockButton.recommend {
+  left: 138px;
+  top: 68px;
 }
 
 .blockButton.show {
@@ -46,6 +56,19 @@
 .listBlockLabel.show {
   display: inline;
   animation: showOn 0.3s linear forwards;
+}
+
+.watchBlockButton {
+  background-color: rgba(0, 0, 0, 0.8) !important;
+}
+
+.block-message {
+  position: fixed;
+  left: 50%;
+  top: 25%;
+  text-align: center;
+  font-size: 24px;
+  transform: translateX(-50%);
 }
 
 @keyframes showOn {

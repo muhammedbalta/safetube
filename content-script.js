@@ -1,40 +1,55 @@
 let videoItems = [];
 function main() {
-  let loc = window.location.href.substring(
-    window.location.href.lastIndexOf("/") + 1
-  );
-  if (loc.startsWith("results?")) loc = "results";
-  console.log(loc);
+  const segments = window.location.pathname.substring(1).split("/");
+  var loc;
+  if (segments.length > 2) loc = segments[segments.length - 1];
+  else loc = window.location.pathname.substring(1).split("/")[0];
+  loc = loc.indexOf("?") > 0 ? loc.split("?")[0] : loc;
+  checkChannelBlocked();
   switch (loc) {
+    case "c":
     case "featured":
+      appendBlockChannelButton();
       featuredPageRender();
       document.onscroll = featuredPageRender();
       break;
     case "videos":
-      console.log("videos");
+      appendBlockChannelButton();
+      channelVideoTab();
+      document.onscroll = channelVideoTab();
       break;
     case "playlists":
-      console.log("playlists");
+      appendBlockChannelButton();
       break;
     case "community":
-      console.log("community");
+      appendBlockChannelButton();
       break;
-    case "channel":
-      console.log("channels");
+    case "channels":
+      appendBlockChannelButton();
+      break;
+    case "about":
+      appendBlockChannelButton();
       break;
     case "results":
-      verticalList();
-      document.onscroll = verticalList();
+      renderVerticalList();
+      document.onscroll = renderVerticalList();
+      break;
+    case "watch":
+      checkblocked(window.location.href);
+      watch();
+      recommendList();
+      document.onscroll = recommendList();
       break;
     case "":
-      dashboard();
-      document.onscroll = dashboard();
+      renderDashboard();
+      document.onscroll = renderDashboard();
       break;
   }
 }
 
-function blockVideo(video) {
+function addBlockedVideo(video) {
   let videos = [];
+  console.log(video);
   chrome.storage.sync.get("blockedVideos", (data) => {
     if (data.blockedVideos) {
       videos = data.blockedVideos;
@@ -46,31 +61,42 @@ function blockVideo(video) {
     }
   });
 }
-function featuredPageRender() {
-  headerVideo();
-  horizontalList();
+
+function addBlockedChannel(channel) {
+  let channels = [];
+  chrome.storage.sync.get("blockedChannels", (data) => {
+    if (data.blockedChannels) {
+      channels = data.blockedChannels;
+      channels.push(channel);
+      chrome.storage.sync.set({ blockedChannels: channels });
+    } else {
+      channels.push(channel);
+      chrome.storage.sync.set({ blockedChannels: channels });
+    }
+  });
 }
-function headerVideo() {
-  const headerVideoElement = document.querySelector(
+function featuredPageRender() {
+  renderHeaderVideo();
+  renderHorizontalLists();
+}
+function renderHeaderVideo() {
+  let headerVideoElement = document.querySelector(
     "ytd-video-renderer:not([use-prominent-thumbs])"
   );
-  const title = headerVideoElement.querySelector(
-    "#video-title.ytd-video-renderer"
-  ).title;
-  const href = headerVideoElement.querySelector(
-    "#video-title.ytd-video-renderer"
-  ).href;
-  const videoItem = {
-    href,
-    title,
-  };
-  hideBlocked(videoItem, headerVideoElement);
-  if (!headerVideoElement.querySelector(".blockButton")) {
-    addBlockButton(videoItem, headerVideoElement, "list");
+  if (headerVideoElement && !headerVideoElement.querySelector(".blockButton")) {
+    const videoTitleElement = headerVideoElement.querySelector(
+      "#video-title.ytd-video-renderer"
+    );
+    const videoItem = {
+      href: videoTitleElement.href,
+      title: videoTitleElement.title,
+    };
+    hideBlockedVideoItem(videoItem, headerVideoElement);
+    addBlockButton(videoItem, headerVideoElement, "header");
   }
 }
 
-function horizontalList() {
+function renderHorizontalLists() {
   let horizontalListItems = document.querySelectorAll(
     "#items.yt-horizontal-list-renderer>*.yt-horizontal-list-renderer"
   );
@@ -84,7 +110,7 @@ function horizontalList() {
         href: link.href,
         title: link.innerText,
       };
-      hideBlocked(videoItem, item);
+      hideBlockedVideoItem(videoItem, item);
       if (!item.querySelector(".blockButton")) {
         addBlockButton(videoItem, item, "list");
       }
@@ -92,7 +118,7 @@ function horizontalList() {
   });
 }
 
-function hideBlocked(video, parent) {
+function hideBlockedVideoItem(video, parent) {
   chrome.storage.sync.get("blockedVideos", (data) => {
     if (data.blockedVideos) {
       data.blockedVideos.forEach((item, index) => {
@@ -102,17 +128,21 @@ function hideBlocked(video, parent) {
   });
 }
 
-function dashboard() {
+function renderDashboard() {
   let gridVideos = document.querySelectorAll("ytd-rich-item-renderer");
   gridVideos.forEach((grid) => {
     const link = grid.querySelector("#video-title-link.ytd-rich-grid-media");
     const label = grid.querySelector("#video-title.ytd-rich-grid-media");
+    const channel = grid.querySelector("#text.complex-string.ytd-channel-name");
+    if (channel) {
+      blockVideoByChannel(channel.innerText, grid);
+    }
     if (link && label) {
       const videoItem = {
         href: link.href,
         title: label.innerText,
       };
-      hideBlocked(videoItem, grid);
+      hideBlockedVideoItem(videoItem, grid);
       if (!grid.querySelector(".blockButton")) {
         addBlockButton(videoItem, grid, "grid");
       }
@@ -120,69 +150,26 @@ function dashboard() {
   });
 }
 
-function blockHeaderVideo() {
-  const headerContent = document.querySelector("ytd-video-renderer");
-  if (headerContent && headerContent != null) {
-    const videoImg = headerContent.querySelector(
-      "ytd-thumbnail #thumbnail.ytd-thumbnail yt-img-shadow.ytd-thumbnail"
-    );
-    const listClosebutton = document.createElement("button");
-    listClosebutton.innerText = "X";
-    listClosebutton.classList.add("listBlockButton");
-    const listBlockLabel = document.createElement("div");
-    listBlockLabel.innerText = "Engelle";
-    listBlockLabel.classList.add("listBlockLabel");
-    videoImg.appendChild(listClosebutton);
-    videoImg.appendChild(listBlockLabel);
-    headerContent.addEventListener("mouseover", () => {
-      listClosebutton.classList.add("show");
-    });
-    headerContent.addEventListener("mouseleave", () => {
-      listClosebutton.classList.remove("show");
-    });
-    listClosebutton.addEventListener("mouseover", () => {
-      listBlockLabel.classList.add("show");
-    });
-    listClosebutton.addEventListener("mouseleave", () => {
-      listBlockLabel.classList.remove("show");
-    });
-    listClosebutton.addEventListener("click", () => {
-      headerContent.style.display = "none";
-    });
-  }
-}
-
 function addBlockButton(videoItem, parent, className) {
   const blockButton = document.createElement("button");
   blockButton.innerText = "X";
   blockButton.classList.add("blockButton");
   blockButton.classList.add(className);
-  const blockLabel = document.createElement("div");
-  blockLabel.innerText = "Engelle";
-  blockLabel.classList.add("blockLabel");
-
   parent.appendChild(blockButton);
-  parent.appendChild(blockLabel);
   parent.addEventListener("mouseover", () => {
     blockButton.classList.add("show");
   });
   parent.addEventListener("mouseleave", () => {
     blockButton.classList.remove("show");
   });
-  blockButton.addEventListener("mouseover", () => {
-    blockLabel.classList.add("show");
-  });
-  blockButton.addEventListener("mouseleave", () => {
-    blockLabel.classList.remove("show");
-  });
   blockButton.addEventListener("click", () => {
     parent.style.display = "none";
 
-    blockVideo(videoItem);
+    addBlockedVideo(videoItem);
   });
 }
 
-function verticalList() {
+function renderVerticalList() {
   const listVideoItems = document.querySelectorAll(
     "ytd-video-renderer.ytd-item-section-renderer"
   );
@@ -193,10 +180,171 @@ function verticalList() {
         href: link.href,
         title: link.innerText,
       };
-      hideBlocked(videoItem, item);
+      hideBlockedVideoItem(videoItem, item);
       if (!item.querySelector(".blockButton")) {
         addBlockButton(videoItem, item, "vertical-list");
       }
+    }
+  });
+}
+
+function channelVideoTab() {
+  const videoItems = document.querySelectorAll(
+    "#items.ytd-grid-renderer>ytd-grid-video-renderer.ytd-grid-renderer"
+  );
+  videoItems.forEach((item) => {
+    const link = item.querySelector(
+      "ytd-grid-video-renderer #video-title.yt-simple-endpoint.ytd-grid-video-renderer"
+    );
+    if (link) {
+      const videoItem = {
+        href: link.href,
+        title: link.innerText,
+      };
+      hideBlockedVideoItem(videoItem, item);
+      if (!item.querySelector(".blockButton")) {
+        addBlockButton(videoItem, item, "list");
+      }
+    }
+  });
+}
+
+function recommendList() {
+  const videoItems = document.querySelectorAll(
+    "ytd-compact-video-renderer.ytd-item-section-renderer"
+  );
+  videoItems.forEach((item) => {
+    const link = item.querySelector(
+      "a.yt-simple-endpoint.ytd-compact-video-renderer"
+    );
+    const title = item.querySelector("#video-title.ytd-compact-video-renderer");
+    const channel = item.querySelector("#container.ytd-channel-name");
+    if (channel) {
+      blockVideoByChannel(channel.innerText, item);
+    }
+    if (link && title) {
+      const videoItem = {
+        href: link.href,
+        title: title.innerText,
+      };
+      hideBlockedVideoItem(videoItem, item);
+      if (!item.querySelector(".blockButton")) {
+        addBlockButton(videoItem, item, "recommend");
+      }
+    }
+  });
+}
+
+function watch() {
+  const buttonContainer = document.querySelector(
+    "ytd-subscribe-button-renderer"
+  );
+  const title = document.querySelector(
+    ".title.ytd-video-primary-info-renderer"
+  );
+  const link = window.location.href;
+  if (
+    title &&
+    link &&
+    buttonContainer &&
+    !buttonContainer.querySelector(".watchBlockButton")
+  ) {
+    const blockButton = document.createElement("tp-yt-paper-button");
+    blockButton.classList.add("style-scope");
+    blockButton.classList.add("ytd-subscribe-button-renderer");
+    blockButton.classList.add("watchBlockButton");
+    blockButton.innerHTML = "Engelle";
+    if (title && link) {
+      blockButton.addEventListener("click", () => {
+        addBlockedVideo({ href: link, title: title.innerText });
+      });
+    }
+
+    buttonContainer.appendChild(blockButton);
+  }
+}
+
+function checkChannelBlocked() {
+  const content = document.querySelector("#page-manager.ytd-app");
+  var hit = false;
+  chrome.storage.sync.get("blockedChannels", (data) => {
+    if (data.blockedChannels) {
+      data.blockedChannels.forEach((item) => {
+        const channelName = document.querySelector(
+          "#text.ytd-channel-name"
+        ).innerText;
+        console.log("-" + item.name + "-" + channelName + "-");
+        if (item.name.trim() === channelName) {
+          if (content) {
+            hit = true;
+            content.style.display = "none";
+            return;
+          }
+        }
+      });
+      if (!hit) content.style.display = "flex";
+    }
+  });
+}
+
+function checkblocked(link) {
+  chrome.storage.sync.get("blockedVideos", (data) => {
+    if (data.blockedVideos) {
+      data.blockedVideos.forEach((item) => {
+        console.log(item.href);
+        if (item.href === link) {
+          const content = document.querySelector(
+            "ytd-page-manager>*.ytd-page-manager"
+          );
+          if (content) {
+            content.remove();
+            const blockedMsgElement = document.createElement("div");
+            blockedMsgElement.innerText = "This Video Blocked by SafeTube";
+            blockedMsgElement.classList.add("block-message");
+            document.body.appendChild(blockedMsgElement);
+          }
+        }
+      });
+    }
+  });
+}
+
+function appendBlockChannelButton() {
+  const buttonContainer = document.querySelector(
+    "ytd-subscribe-button-renderer"
+  );
+  const channelName = document.querySelector(
+    "#text-container.ytd-channel-name"
+  );
+  if (
+    buttonContainer &&
+    channelName &&
+    !buttonContainer.querySelector(".watchBlockButton")
+  ) {
+    const blockButton = document.createElement("tp-yt-paper-button");
+    blockButton.classList.add("style-scope");
+    blockButton.classList.add("ytd-subscribe-button-renderer");
+    blockButton.classList.add("watchBlockButton");
+    blockButton.innerHTML = "Engelle";
+    blockButton.addEventListener("click", () => {
+      addBlockedChannel({
+        href: window.location.href,
+        name: channelName.innerText,
+      });
+    });
+
+    buttonContainer.appendChild(blockButton);
+  }
+}
+
+function blockVideoByChannel(name, videoElement) {
+  chrome.storage.sync.get("blockedChannels", (data) => {
+    if (data.blockedChannels) {
+      data.blockedChannels.forEach((item) => {
+        if (item.name.trim() === name.trim()) {
+          videoElement.remove();
+        }
+      });
     }
   });
 }

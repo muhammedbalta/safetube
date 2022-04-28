@@ -1,0 +1,42 @@
+.item-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+}
+.list-container {
+  width: 33%;
+}
+.remove-button {
+  padding: 4px 8px;
+  background-color: transparent;
+  border: 0px;
+  color: #b22222;
+  cursor: pointer;
+  opacity: 0.3;
+}
+.remove-button:hover {
+  opacity: 1;
+  font-weight: bold;
+}
+.head {
+  background-color: transparent;
+  text-align: left;
+  padding: 8px 0px;
+  font-weight: bold;
+  border-bottom: 1px solid #333;
+  display: flex;
+  justify-content: space-between;
+}
+
+.search-container {
+  display: flex;
+  gap: 4px;
+}
+
+body {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
