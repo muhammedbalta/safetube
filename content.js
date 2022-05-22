@@ -195,7 +195,7 @@ function renderDashboard() {
       "#text.complex-string.ytd-channel-name a"
     );
     if (channelLink) {
-      blockVideoByChannel(channelLink.href, grid);
+      blockVideoByChannelLink(channelLink.href, grid);
     }
     if (link && label) {
       let params = new URL(link).searchParams;
@@ -244,7 +244,7 @@ function recommendList() {
     const title = item.querySelector("#video-title.ytd-compact-video-renderer");
     const channel = item.querySelector("#container.ytd-channel-name");
     if (channel) {
-      blockVideoByChannel(channel.innerText, item);
+      blockVideoByChannelName(channel.innerText, item);
     }
     if (link && title) {
       let params = new URL(link).searchParams;
@@ -306,13 +306,25 @@ function checkblocked(link) {
   });
 }
 
-function blockVideoByChannel(channelHref, videoElement) {
+function blockVideoByChannelLink(channelHref, videoElement) {
   let channelPath = new URL(channelHref).pathname;
   let channelID = channelPath.substring(channelPath.lastIndexOf("/") + 1);
   chrome.storage.sync.get("blockedChannels", (data) => {
     if (data.blockedChannels) {
       data.blockedChannels.forEach((item) => {
         if (item.id === channelID) {
+          videoElement.remove();
+        }
+      });
+    }
+  });
+}
+
+function blockVideoByChannelName(name, videoElement) {
+  chrome.storage.sync.get("blockedChannels", (data) => {
+    if (data.blockedChannels) {
+      data.blockedChannels.forEach((item) => {
+        if (item.name === name) {
           videoElement.remove();
         }
       });
