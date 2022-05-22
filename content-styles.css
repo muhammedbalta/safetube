@@ -62,13 +62,22 @@
   background-color: rgba(0, 0, 0, 0.8) !important;
 }
 
-.block-message {
+.block-message-container {
   position: fixed;
-  left: 50%;
-  top: 25%;
+  color: white;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
   text-align: center;
   font-size: 24px;
-  transform: translateX(-50%);
+  z-index: 10000;
+  background-color: rgba(0, 0, 0, 0.8);
+  overflow: hidden;
+}
+.block-message {
+  width: 100vw;
+  text-align: center;
 }
 
 @keyframes showOn {

@@ -1,4 +1,3 @@
-
 let videoItems = [];
 
 function appendBlockChannelButton() {
@@ -19,10 +18,14 @@ function appendBlockChannelButton() {
     blockButton.classList.add("watchBlockButton");
     blockButton.innerHTML = "X";
     blockButton.addEventListener("click", () => {
+      let channelID = window.location.pathname.substring(
+        window.location.pathname.lastIndexOf("/") + 1
+      );
       addBlockedChannel({
-        href: window.location.href,
+        id: channelID,
         name: channelName.innerText,
       });
+      window.location.reload();
     });
 
     buttonContainer.appendChild(blockButton);
@@ -41,8 +44,10 @@ function renderHeaderVideo() {
     const videoTitleElement = headerVideoElement.querySelector(
       "#video-title.ytd-video-renderer"
     );
+    let params = new URL(videoTitleElement.href).searchParams;
+    let linkID = params.get("v");
     const videoItem = {
-      href: videoTitleElement.href,
+      id: linkID,
       title: videoTitleElement.title,
     };
     hideBlockedVideoItem(videoItem, headerVideoElement);
@@ -60,8 +65,10 @@ function renderHorizontalLists() {
       "ytd-grid-video-renderer #video-title.yt-simple-endpoint.ytd-grid-video-renderer"
     );
     if (link) {
+      let params = new URL(link.href).searchParams;
+      let linkID = params.get("v");
       const videoItem = {
-        href: link.href,
+        id: linkID,
         title: link.innerText,
       };
       hideBlockedVideoItem(videoItem, item);
@@ -71,7 +78,6 @@ function renderHorizontalLists() {
     }
   });
 }
-
 
 function channelVideoTab() {
   const videoItems = document.querySelectorAll(
@@ -82,8 +88,10 @@ function channelVideoTab() {
       "ytd-grid-video-renderer #video-title.yt-simple-endpoint.ytd-grid-video-renderer"
     );
     if (link) {
+      let params = new URL(link.href).searchParams;
+      let linkID = params.get("v");
       const videoItem = {
-        href: link.href,
+        id: linkID,
         title: link.innerText,
       };
       hideBlockedVideoItem(videoItem, item);
@@ -93,8 +101,6 @@ function channelVideoTab() {
     }
   });
 }
-
-
 
 function addBlockedVideo(video) {
   let videos = [];
@@ -128,26 +134,21 @@ function hideBlockedVideoItem(video, parent) {
   chrome.storage.sync.get("blockedVideos", (data) => {
     if (data.blockedVideos) {
       data.blockedVideos.forEach((item, index) => {
-        if (video.href == item.href) parent.style.display = "none";
+        if (video.id === item.id) parent.style.display = "none";
       });
     }
   });
 }
 
-function clearBlockMessage()
-{
-    const blockMessage = document.querySelector(".block-message");
-    if(blockMessage) blockMessage.remove();
-}
-
-function setBlockMessage(msg)
-{
-  if(!document.querySelector(".block-message"))
-  {
+function setBlockMessage(msg) {
+  if (!document.querySelector(".block-message-container")) {
     const blockedMsgElement = document.createElement("div");
-    blockedMsgElement.innerText = msg;
-    blockedMsgElement.classList.add("block-message");
+    blockedMsgElement.classList.add("block-message-container");
     document.body.appendChild(blockedMsgElement);
+    const textElement = document.createElement("span");
+    textElement.innerText = msg;
+    textElement.classList.add("block-message");
+    blockedMsgElement.appendChild(textElement);
   }
 }
 
@@ -165,30 +166,22 @@ function addBlockButton(videoItem, parent, className) {
   });
   blockButton.addEventListener("click", () => {
     parent.style.display = "none";
-
     addBlockedVideo(videoItem);
+    window.location.reload();
   });
 }
 
 function checkChannelBlocked(path) {
-  const content = document.querySelector("#page-manager.ytd-app");
-  var hit = false;
   chrome.storage.sync.get("blockedChannels", (data) => {
     if (data.blockedChannels) {
+      let channelID = path.substring(path.lastIndexOf("/") + 1);
       data.blockedChannels.forEach((item) => {
-        var url = new URL(item.href);
-        if (path.startsWith(url.pathname)) {
-          if (content) {
-            hit = true;
-            content.style.visibility = "hidden";
-            setBlockMessage("This Channel Blocked By SafeTube");
-            return;
-          }
+        console.log("Item ID: " + item.id + " / " + "Channel ID: " + channelID);
+        if (item.id === channelID) {
+          setBlockMessage("This Channel Blocked By SafeYouTube");
+          return;
         }
       });
-      if (!hit) {
-        content.style.visibility = "visible";
-      } 
     }
   });
 }
@@ -198,13 +191,17 @@ function renderDashboard() {
   gridVideos.forEach((grid) => {
     const link = grid.querySelector("#video-title-link.ytd-rich-grid-media");
     const label = grid.querySelector("#video-title.ytd-rich-grid-media");
-    const channelLink = grid.querySelector("#text.complex-string.ytd-channel-name a");
+    const channelLink = grid.querySelector(
+      "#text.complex-string.ytd-channel-name a"
+    );
     if (channelLink) {
       blockVideoByChannel(channelLink.href, grid);
     }
     if (link && label) {
+      let params = new URL(link).searchParams;
+      let linkID = params.get("v");
       const videoItem = {
-        href: link.href,
+        id: linkID,
         title: label.innerText,
       };
       hideBlockedVideoItem(videoItem, grid);
@@ -222,8 +219,10 @@ function renderVerticalList() {
   listVideoItems.forEach((item) => {
     const link = item.querySelector("#video-title.ytd-video-renderer");
     if (link) {
+      let params = new URL(link).searchParams;
+      let linkID = params.get("v");
       const videoItem = {
-        href: link.href,
+        id: linkID,
         title: link.innerText,
       };
       hideBlockedVideoItem(videoItem, item);
@@ -233,7 +232,6 @@ function renderVerticalList() {
     }
   });
 }
-
 
 function recommendList() {
   const videoItems = document.querySelectorAll(
@@ -249,8 +247,10 @@ function recommendList() {
       blockVideoByChannel(channel.innerText, item);
     }
     if (link && title) {
+      let params = new URL(link).searchParams;
+      let linkID = params.get("v");
       const videoItem = {
-        href: link.href,
+        id: linkID,
         title: title.innerText,
       };
       hideBlockedVideoItem(videoItem, item);
@@ -281,25 +281,25 @@ function watch() {
     blockButton.classList.add("watchBlockButton");
     blockButton.innerHTML = "X";
     if (title && link) {
+      let params = new URL(link).searchParams;
+      let linkID = params.get("v");
       blockButton.addEventListener("click", () => {
-        addBlockedVideo({ href: link, title: title.innerText });
+        addBlockedVideo({ id: linkID, title: title.innerText });
+        window.location.reload();
       });
     }
     buttonContainer.appendChild(blockButton);
   }
 }
 
-
 function checkblocked(link) {
   chrome.storage.sync.get("blockedVideos", (data) => {
     if (data.blockedVideos) {
+      let params = new URL(link).searchParams;
+      let linkID = params.get("v");
       data.blockedVideos.forEach((item) => {
-        if (link.startsWith(item.href)) {
-          const content = document.querySelector("#page-manager.ytd-app");
-          if (content) {
-            content.style.visibility = "hidden";
-            setBlockMessage("This Video Blocked By SafeTube");
-          }
+        if (linkID === item.id) {
+          setBlockMessage("This Video Blocked By SafeYouTube");
         }
       });
     }
@@ -307,10 +307,12 @@ function checkblocked(link) {
 }
 
 function blockVideoByChannel(channelHref, videoElement) {
+  let channelPath = new URL(channelHref).pathname;
+  let channelID = channelPath.substring(channelPath.lastIndexOf("/") + 1);
   chrome.storage.sync.get("blockedChannels", (data) => {
     if (data.blockedChannels) {
       data.blockedChannels.forEach((item) => {
-        if (item.href.trim() === channelHref.trim()) {
+        if (item.id === channelID) {
           videoElement.remove();
         }
       });
@@ -324,63 +326,64 @@ function main() {
   if (segments.length > 2) loc = segments[segments.length - 1];
   else loc = window.location.pathname.substring(1).split("/")[0];
   loc = loc.indexOf("?") > 0 ? loc.split("?")[0] : loc;
-  clearBlockMessage();
-  checkChannelBlocked(window.location.pathname);
+  document.querySelector(".block-message-container")?.remove();
   switch (loc) {
     case "c":
     case "featured":
+      checkChannelBlocked(window.location.pathname);
       appendBlockChannelButton();
       featuredPageRender();
-      window.addEventListener("scroll", () => {
-        appendBlockChannelButton();
-        featuredPageRender()
-      });
       break;
     case "videos":
+      checkChannelBlocked(window.location.pathname);
       appendBlockChannelButton();
       channelVideoTab();
-      window.addEventListener("scroll", () => {
-        appendBlockChannelButton();
-        channelVideoTab()
-      });
       break;
     case "playlists":
+      checkChannelBlocked(window.location.pathname);
       appendBlockChannelButton();
       break;
     case "community":
+      checkChannelBlocked(window.location.pathname);
       appendBlockChannelButton();
       break;
     case "channels":
+      checkChannelBlocked(window.location.pathname);
       appendBlockChannelButton();
       break;
     case "about":
+      checkChannelBlocked(window.location.pathname);
       appendBlockChannelButton();
       break;
     case "results":
       renderVerticalList();
-      window.addEventListener("scroll", () => renderVerticalList())
       break;
     case "watch":
       checkblocked(window.location.href);
       watch();
       recommendList();
-      window.addEventListener("scroll", () => {
-        checkblocked(window.location.href);
-        watch();
-        recommendList();
-      });
       break;
     case "":
       renderDashboard();
-      window.addEventListener("scroll", () => renderDashboard())
       break;
   }
 }
 
-
-document.addEventListener('yt-navigate-start', main);
-document.addEventListener('yt-navigate-finish', main);
-
-if (document.body) main();
-else document.addEventListener('DOMContentLoaded', main);
-
+document.addEventListener("yt-navigate-finish", () => {
+  main();
+});
+document.addEventListener("yt-navigate-cache", () => {
+  main();
+});
+document.addEventListener("yt-page-data-updated", () => {
+  main();
+});
+document.addEventListener("yt-service-request-completed", () => {
+  main();
+});
+if (document.body) {
+  main();
+} else
+  document.addEventListener("DOMContentLoaded", () => {
+    main();
+  });
