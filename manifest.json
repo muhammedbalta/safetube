@@ -1,7 +1,7 @@
 {
   "name": "SafeYoutube",
   "description": "Content blocking for youtube",
-  "version": "0.1",
+  "version": "0.2",
   "manifest_version": 3,
   "options_page": "options.html",
   "permissions": ["storage"],
